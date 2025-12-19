@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"> <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@500;800&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>カードショップ雷雷 買取表</title>
+  <title>カードショップ雷雷 買取表（計算機能付き）</title>
   <style>
-    /* デザインCSS（元のまま） */
+    /* デザインCSS（元のまま + 追加分） */
     :root {
       --bg-color: #121212;
       --card-bg: #1e1e1e;
@@ -17,7 +17,7 @@
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0; padding: 0 0 80px 0;
+      margin: 0; padding: 0 0 140px 0; /* 下部の合計バーのために余白を増やす */
       background-color: var(--bg-color); color: var(--text-main);
       font-family: 'M PLUS 1p', sans-serif; text-align: center;
       -webkit-font-smoothing: antialiased;
@@ -53,11 +53,11 @@
     .result-table td { padding: 10px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .col-img { width: 50px; text-align: center; }
     .col-name { text-align: left; }
-    .col-price { text-align: right; width: 30%; white-space: nowrap; }
+    .col-price { text-align: right; width: 35%; white-space: nowrap; } /* 少し幅を広げた */
     .card-thumb { width: 44px; height: 62px; object-fit: cover; border-radius: 3px; background: #333; cursor: zoom-in; }
     .item-name { font-size: 14px; font-weight: bold; display: block; margin-bottom: 3px; line-height: 1.3; }
     .item-rarity { font-size: 10px; color: #000; background: var(--accent); padding: 1px 5px; border-radius: 3px; display: inline-block; font-weight: bold; }
-    .price-container { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .price-container { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; margin-bottom: 6px; }
     .price-tag { font-size: 17px; color: var(--accent); font-weight: 800; letter-spacing: -0.5px; }
     .price-label { font-size: 10px; margin-right: 2px; color: var(--accent); opacity: 0.8; }
     .price-sub { font-size: 12px; color: #888; font-weight: normal; }
@@ -70,6 +70,45 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .loader { margin: 40px auto; width: 30px; height: 30px; border: 3px solid #333; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ▼▼▼ 追加：数量選択＆合計バー用CSS ▼▼▼ */
+    .qty-control {
+      display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+    }
+    .btn-qty {
+      width: 28px; height: 28px; border-radius: 4px; border: 1px solid #444; background: #2a2a2a; color: #fff;
+      font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      touch-action: manipulation; /* スマホでの連打対策 */
+    }
+    .btn-qty:active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .qty-display { font-size: 15px; font-weight: bold; min-width: 20px; text-align: center; }
+    .qty-active { color: var(--accent); }
+
+    .total-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(18, 18, 18, 0.95); border-top: 1px solid var(--accent);
+      padding: 10px 15px; z-index: 900;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+    }
+    .total-container {
+      max-width: 800px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .total-info { text-align: left; }
+    .total-count { font-size: 11px; color: #aaa; }
+    .total-price { font-size: 22px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .total-label { font-size: 12px; margin-right: 3px; color: #fff; }
+    .btn-reset {
+      background: #333; color: #aaa; border: 1px solid #555; padding: 5px 12px;
+      font-size: 11px; border-radius: 4px; cursor: pointer; margin-right: 10px;
+    }
+    .btn-confirm {
+      background: linear-gradient(135deg, var(--accent), #fbc02d);
+      color: #000; border: none; padding: 8px 20px; font-weight: 800;
+      border-radius: 20px; font-size: 14px; cursor: pointer;
+    }
+    /* ▲▲▲ 追加ここまで ▲▲▲ */
   </style>
 </head>
 <body>
@@ -145,13 +184,28 @@
           <tr>
             <th>IMG</th>
             <th style="text-align:left;">商品名</th>
-            <th style="text-align:right;">買取価格</th>
+            <th style="text-align:right;">買取価格 / 枚数</th>
           </tr>
         </thead>
         <tbody id="table-body"></tbody>
       </table>
 
       <button id="load-more" class="load-more-btn" onclick="loadMore()">もっと見る</button>
+    </div>
+  </div>
+
+  <div class="total-bar">
+    <div class="total-container">
+      <div class="total-info">
+        <div class="total-count" id="total-count-text">選択中: 0点</div>
+        <div>
+          <span class="total-label">合計</span>
+          <span class="total-price" id="total-price-text">¥0</span>
+        </div>
+      </div>
+      <div>
+        <button class="btn-reset" onclick="resetCart()">リセット</button>
+        </div>
     </div>
   </div>
 
@@ -167,9 +221,11 @@
     let allData = [];
     let displayedData = [];
     let currentLimit = 100;
+    
+    // カート状態管理 { uniqueId: quantity }
+    let cart = {}; 
 
     window.addEventListener('DOMContentLoaded', () => {
-      // google.script.run を fetch に変更
       fetch(GAS_API_URL)
         .then(response => response.json())
         .then(data => initData(data))
@@ -189,7 +245,8 @@
       }
 
       const raritySet = new Set();
-      allData = data.map(item => {
+      // ユニークIDを生成（本来はスプレッドシート側にIDがあるのが望ましいですが、インデックスで代用）
+      allData = data.map((item, index) => {
         const nameStr = item.name ? String(item.name) : '';
         const rarityMatch = nameStr.match(/【(.*?)】/);
         const rarity = rarityMatch ? rarityMatch[1] : '';
@@ -197,6 +254,7 @@
 
         return {
           ...item,
+          id: index, // 一意のIDとしてインデックスを使用
           nameStr: nameStr,
           normalizedName: normalize(nameStr),
           rarity: rarity,
@@ -311,7 +369,11 @@
         loadMoreBtn.style.display = 'none';
       }
 
-      const html = renderList.map(item => `
+      const html = renderList.map(item => {
+        const qty = cart[item.id] || 0;
+        const activeClass = qty > 0 ? 'qty-active' : '';
+
+        return `
         <tr>
           <td class="col-img">
             ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onclick="openModal('${item.image}')">` : ''}
@@ -330,11 +392,64 @@
                 <span class="price-sub-label">A</span>¥${item.priceANum.toLocaleString()}
               </div>` : ''}
             </div>
+            <div class="qty-control">
+              <button class="btn-qty" onclick="changeQty(${item.id}, -1)">-</button>
+              <span class="qty-display ${activeClass}" id="qty-${item.id}">${qty}</span>
+              <button class="btn-qty" onclick="changeQty(${item.id}, 1)">+</button>
+            </div>
           </td>
         </tr>
-      `).join('');
+      `}).join('');
 
       tbody.innerHTML = html;
+      
+      // 合計バーの再計算（表示時に反映させる）
+      updateTotalBar();
+    }
+
+    function changeQty(id, delta) {
+      if (!cart[id]) cart[id] = 0;
+      cart[id] += delta;
+      
+      if (cart[id] < 0) cart[id] = 0;
+      
+      // DOM更新（再描画コストを避けるため直接書き換え）
+      const qtyEl = document.getElementById(`qty-${id}`);
+      if (qtyEl) {
+        qtyEl.textContent = cart[id];
+        if (cart[id] > 0) qtyEl.classList.add('qty-active');
+        else qtyEl.classList.remove('qty-active');
+      }
+      
+      updateTotalBar();
+    }
+
+    function updateTotalBar() {
+      let totalCount = 0;
+      let totalPrice = 0;
+
+      // カートの中身を走査
+      for (const [idStr, qty] of Object.entries(cart)) {
+        if (qty > 0) {
+          const id = Number(idStr);
+          // allDataから価格を参照（全データから探す）
+          const item = allData.find(d => d.id === id);
+          if (item) {
+            totalCount += qty;
+            totalPrice += item.priceNum * qty;
+          }
+        }
+      }
+
+      document.getElementById('total-count-text').textContent = `選択中: ${totalCount}点`;
+      document.getElementById('total-price-text').textContent = `¥${totalPrice.toLocaleString()}`;
+    }
+
+    function resetCart() {
+      if(!confirm('選択をすべてクリアしますか？')) return;
+      cart = {};
+      render(); // 再描画して0に戻す
+      updateTotalBar();
     }
 
     function loadMore() { currentLimit += 100; render(); }
