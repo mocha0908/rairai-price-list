@@ -5,7 +5,7 @@
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@500;800&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <style>
-    /* 基本設定 */
+    /* 基本設定（ダークモードベース） */
     :root {
       --bg-color: #121212;
       --card-bg: #1e1e1e;
@@ -14,7 +14,21 @@
       --text-sub: #aaaaaa;
       --border: #333333;
       --line-green: #06C755;
+      --fav: #ffcc00;
     }
+    
+    @media (prefers-color-scheme: light) {
+      /* 端末がライトモードの場合は少し明るめに切り替える処理（お好みで調整可能） */
+      :root {
+        --bg-color: #f4f7f6;
+        --card-bg: #ffffff;
+        --accent: #fbc02d;
+        --text-main: #333333;
+        --text-sub: #666666;
+        --border: #dddddd;
+      }
+    }
+
     * { box-sizing: border-box; }
     body {
       margin: 0; padding: 0 0 80px 0;
@@ -32,65 +46,96 @@
     .container { max-width: 800px; margin: 0 auto; padding: 0 15px; }
     
     /* アコーディオン */
-    .accordion { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
-    .accordion summary { padding: 10px; cursor: pointer; font-size: 13px; color: var(--text-sub); display: flex; justify-content: center; align-items: center; gap: 8px; background: #222; }
+    .accordion { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; text-align: left; }
+    .accordion summary { padding: 10px; cursor: pointer; font-size: 13px; color: var(--text-sub); display: flex; justify-content: center; align-items: center; gap: 8px; background: rgba(0,0,0,0.05); }
     .guarantee-content { padding: 15px; border-top: 1px solid var(--border); }
-    .guarantee-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 0 auto; }
+    .guarantee-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 0 auto; text-align: center; }
     .guarantee-table th { background: var(--accent); color: #000; padding: 6px; }
-    .guarantee-table td { border: 1px solid #444; padding: 6px; }
+    .guarantee-table td { border: 1px solid var(--border); padding: 6px; }
 
     /* コントロールエリア */
-    .sticky-controls { position: sticky; top: 0; background: rgba(18, 18, 18, 0.98); border-bottom: 1px solid var(--border); padding: 10px 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .sticky-controls { position: sticky; top: 0; background: var(--bg-color); border-bottom: 1px solid var(--border); padding: 10px 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
     .full-width { grid-column: 1 / -1; }
 
     /* 入力パーツ */
-    input, select, .btn-shop, .btn-line { width: 100%; padding: 0 10px; font-size: 14px; background: #2a2a2a; border: 1px solid var(--border); border-radius: 6px; color: #fff; outline: none; height: 42px; }
+    input, select, .btn-shop, .btn-line, .btn-toggle { width: 100%; padding: 0 10px; font-size: 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); outline: none; height: 42px; }
     input:focus, select:focus { border-color: var(--accent); }
-    .search-wrapper { position: relative; width: 100%; }
-    input#search-box { padding-right: 35px; }
-    .clear-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 40px; background: transparent; color: #888; border: none; font-size: 18px; cursor: pointer; display: none; }
+    
+    .search-wrapper { position: relative; width: 100%; display: flex; gap: 4px; }
+    input#search-box { flex: 1; padding-right: 35px; }
+    .clear-btn { position: absolute; right: 65px; top: 0; bottom: 0; width: 40px; background: transparent; color: #888; border: none; font-size: 18px; cursor: pointer; display: none; }
+    .btn-search { background: var(--accent); color: #000; border: none; padding: 0 15px; font-weight: bold; cursor: pointer; border-radius: 6px; white-space: nowrap; }
 
-    /* 通販ボタン */
+    /* 検索履歴 */
+    .history-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; padding: 0 5px; justify-content: flex-start; }
+    .history-tag { font-size: 11px; background: var(--border); color: var(--text-main); padding: 4px 10px; border-radius: 12px; cursor: pointer; font-weight: bold; white-space: nowrap; }
+    .history-clear { font-size: 10px; color: var(--text-sub); cursor: pointer; text-decoration: underline; margin-left: auto; display: flex; align-items: center; }
+
+    /* 価格範囲 */
+    .price-range-group { display: flex; align-items: center; gap: 4px; grid-column: 1 / -1; }
+    .price-range-group input { text-align: center; }
+
+    /* トグルボタン等 */
+    .controls-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .btn-toggle { background: var(--card-bg); cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; }
+    .btn-toggle.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    /* 外部リンクボタン */
     .btn-shop { display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, var(--accent), #fbc02d); color: #000; font-weight: 800; text-decoration: none; border: none; }
     .btn-shop::after { content: ' ↗'; font-weight: bold; margin-left: 4px;}
-
-    /* LINE買取ボタン */
     .btn-line { display: flex; justify-content: center; align-items: center; background: var(--line-green); color: #fff; font-weight: 800; text-decoration: none; border: none; }
-    .btn-line::before { content: 'LINE '; font-weight: bold; margin-right: 4px; }
 
-    /* 結果テーブル */
+    /* 結果エリア */
     .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 5px 15px; font-size: 11px; color: var(--text-sub); }
+    
+    /* リスト表示スタイル */
     .result-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
     .result-table th { color: var(--text-sub); font-size: 11px; padding: 8px; border-bottom: 1px solid var(--border); }
-    .result-table td { padding: 10px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    
+    .result-table td { padding: 10px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; text-align: left; }
     .col-img { width: 50px; text-align: center; }
-    .col-name { text-align: left; }
-    .col-price { text-align: right; width: 30%; white-space: nowrap; }
-
     .card-thumb { width: 44px; height: 62px; object-fit: cover; border-radius: 3px; background: #333; cursor: zoom-in; }
-    .item-name { font-size: 14px; font-weight: bold; display: block; margin-bottom: 3px; line-height: 1.3; }
-    .item-rarity { font-size: 10px; color: #000; background: var(--accent); padding: 1px 5px; border-radius: 3px; display: inline-block; font-weight: bold; }
+    
+    /* グリッド表示スタイル */
+    .grid-container { display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; padding: 10px; }
+    .grid-container.active { display: grid; }
+    .grid-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+    .grid-card .card-thumb { width: 100%; height: 140px; object-fit: contain; background: transparent; cursor: zoom-in; }
+    
+    .result-table.hidden { display: none; } /* グリッド表示時にテーブルを隠す */
+
+    /* カード内共通要素 */
+    .item-name { font-size: 13px; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+    .item-rarity { font-size: 10px; color: #000; background: var(--accent); padding: 2px 6px; border-radius: 3px; display: inline-block; font-weight: bold; margin-bottom: 2px; }
     
     /* 価格表示 */
     .price-container { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .grid-card .price-container { align-items: center; }
     .price-tag { font-size: 17px; color: var(--accent); font-weight: 800; letter-spacing: -0.5px; }
     .price-label { font-size: 10px; margin-right: 2px; color: var(--accent); opacity: 0.8; }
-    .price-sub { font-size: 12px; color: #888; font-weight: normal; }
-    .price-sub-label { font-size: 10px; color: #666; margin-right: 2px; }
+    .price-sub { font-size: 12px; color: var(--text-sub); font-weight: normal; }
 
-    /* もっと見るボタン */
-    .load-more-btn { display: block; width: 200px; margin: 25px auto; padding: 12px; background: #333; color: #fff; border: 1px solid #555; border-radius: 25px; cursor: pointer; font-size: 13px; font-weight: bold; }
-    .load-more-btn:hover { background: #444; border-color: var(--accent); }
+    /* お気に入り＆アクションボタン */
+    .fav-btn { background: none; border: none; font-size: 18px; color: var(--border); cursor: pointer; padding: 0; line-height: 1; transition: transform 0.2s; }
+    .fav-btn.active { color: var(--fav); }
+    .actions-row { display: flex; gap: 4px; margin-top: 4px; justify-content: center; }
+    .action-btn { flex: 1; padding: 6px 0; border-radius: 4px; font-size: 10px; font-weight: bold; color: #fff; text-decoration: none; text-align: center; border: none; cursor: pointer; }
+    .btn-mer { background: #ea352d; }
+    .btn-tw { background: #000; border: 1px solid #333; }
+    @media (prefers-color-scheme: light) { .btn-tw { color: #fff; } }
 
-    /* モーダル・ローダー */
+    /* 汎用UI */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 9999; }
     .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
     .modal-img { max-width: 90%; max-height: 80vh; border: 2px solid var(--accent); border-radius: 8px; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
     .loader { margin: 40px auto; width: 30px; height: 30px; border: 3px solid #333; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .scroll-to-top { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; border-radius: 50%; background: var(--accent); color: #000; border: none; font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; z-index: 200; font-weight: bold; }
+    .toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 300; transition: bottom 0.3s; pointer-events: none; }
+    .toast.show { bottom: 30px; }
   </style>
 </head>
 <body>
@@ -103,17 +148,14 @@
   </div>
 
   <div class="container">
-    <details class="accordion">
+    <details class="accordion" open>
       <summary>最低保証リスト・注意事項</summary>
       <div class="guarantee-content">
         <table class="guarantee-table">
-          <tr><th>カード</th><th>S</th><th>A</th><th>B</th></tr>
-          <tr><td>SAR</td><td>¥400</td><td>¥300</td><td>¥200</td></tr>
-          <tr><td>SR</td><td>¥200</td><td>¥130</td><td>¥50</td></tr>
-          <tr><td>AR</td><td>¥200</td><td>¥130</td><td>¥50</td></tr>
-          <tr><td>RR</td><td>¥10</td><td>¥5</td><td>¥2</td></tr>
+          <tr><th>カード</th><th>S</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+          <tr><td>AR/CHR</td><td>¥300</td><td>¥120</td><td>¥50</td><td>¥10</td><td>¥1</td></tr>
         </table>
-        <p style="font-size:10px; margin-top:8px; color:#888;">
+        <p style="font-size:10px; margin-top:8px; color:var(--text-sub); text-align:center;">
           ※状態による減額基準は店頭にてご確認ください
         </p>
       </div>
@@ -122,26 +164,42 @@
 
   <div class="sticky-controls">
     <div class="container">
-      <div class="controls-grid">
-        <div class="full-width">
-          <div class="search-wrapper">
-            <input type="text" id="search-box" placeholder="キーワード・型番を入力..." disabled>
-            <button id="clear-btn" class="clear-btn" onclick="clearSearch()">×</button>
-          </div>
+      <form class="search-form" onsubmit="handleSearchSubmit(event)">
+        <div class="search-wrapper">
+          <input type="text" id="search-box" placeholder="キーワード・型番を入力..." disabled>
+          <button type="button" id="clear-btn" class="clear-btn" onclick="clearKeyword()">×</button>
+          <button type="submit" class="btn-search">検索</button>
         </div>
-        
+      </form>
+      
+      <div class="history-row" id="history-container"></div>
+
+      <div class="controls-grid">
         <select id="rarity-filter" onchange="applyFilterAndSort()" disabled>
           <option value="all">全レアリティ</option>
         </select>
-
         <select id="sort-select" onchange="applyFilterAndSort()" disabled>
           <option value="name-asc" selected>名前順</option>
           <option value="price-desc">価格が高い順</option>
           <option value="price-asc">価格が安い順</option>
         </select>
         
-        <a href="https://tcg-rairai.jp/" target="_blank" class="btn-shop full-width">公式通販サイトへ</a>
-        <a href="https://line.me/R/ti/p/@236umfzx?oat_content=url&ts=06031807" target="_blank" class="btn-line full-width">郵送買取受付へ</a>
+        <div class="price-range-group">
+          <input type="number" id="min-price" placeholder="下限(¥)" oninput="applyFilterAndSort()" pattern="\d*">
+          <span>〜</span>
+          <input type="number" id="max-price" placeholder="上限(¥)" oninput="applyFilterAndSort()" pattern="\d*">
+        </div>
+      </div>
+
+      <div class="controls-3col">
+        <button id="view-toggle" class="btn-toggle" onclick="toggleView()">画像表示にする</button>
+        <button id="fav-toggle" class="btn-toggle" onclick="toggleFavFilter()" style="color:var(--fav);">★お気に入り</button>
+        <button class="btn-toggle" onclick="clearKeyword()">条件クリア</button>
+      </div>
+
+      <div class="controls-grid" style="margin-bottom:0;">
+        <a href="https://tcg-rairai.jp/" target="_blank" class="btn-shop">公式通販サイト</a>
+        <a href="https://line.me/R/ti/p/@236umfzx" target="_blank" class="btn-line">郵送買取受付</a>
       </div>
     </div>
   </div>
@@ -157,20 +215,16 @@
     </div>
 
     <div id="result-area" style="display:none;">
-      <table class="result-table">
-        <thead>
-          <tr>
-            <th>IMG</th>
-            <th style="text-align:left;">商品名</th>
-            <th style="text-align:right;">買取価格</th>
-          </tr>
-        </thead>
+      <table class="result-table" id="list-view">
         <tbody id="table-body"></tbody>
       </table>
-
-      <button id="load-more" class="load-more-btn" onclick="loadMore()">もっと見る</button>
+      
+      <div class="grid-container" id="grid-view"></div>
     </div>
   </div>
+
+  <button class="scroll-to-top" id="scrollToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">↑</button>
+  <div class="toast" id="toast"></div>
 
   <div class="modal-overlay" id="modal" onclick="closeModal()">
     <img src="" id="modal-img" class="modal-img">
@@ -179,44 +233,32 @@
   <script>
     let allData = [];
     let displayedData = [];
-    let currentLimit = 100;
+    let favorites = JSON.parse(localStorage.getItem('rairai_favs') || '[]');
+    let searchHistory = JSON.parse(localStorage.getItem('rairai_history') || '[]');
+    let isGrid = localStorage.getItem('rairai_view') === 'grid';
+    let isFavOnly = false;
 
-    // GitHubのRaw URL
     const JSON_URL = "https://raw.githubusercontent.com/mocha0908/rairai-pos-data/main/data.json";
 
     window.addEventListener('DOMContentLoaded', () => {
-      // キャッシュを回避して常に最新を取得
       const cacheBuster = new Date().getTime();
+      applyViewState();
+      renderHistory();
       
       fetch(`${JSON_URL}?t=${cacheBuster}`)
-        .then(response => {
-          if (!response.ok) throw new Error("ネットワークエラー");
-          return response.json();
-        })
+        .then(response => { if (!response.ok) throw new Error("ネットワークエラー"); return response.json(); })
         .then(data => initData(data))
         .catch(e => {
-          alert('読み込みエラー: ' + e);
           document.getElementById('loading').innerHTML = '<p>データの取得に失敗しました</p>';
         });
     });
 
-    function getFormattedDate(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      const h = String(date.getHours()).padStart(2, '0');
-      const min = String(date.getMinutes()).padStart(2, '0');
-      return `${y}/${m}/${d} ${h}:${min}`;
-    }
-
+    // 初期化処理
     function initData(data) {
-      // データの最終取得時間を現在時刻とする
-      const lastUpdate = getFormattedDate(new Date());
-      document.getElementById('last-updated-text').innerHTML = `最終更新: <span>${lastUpdate}</span>`;
-
+      document.getElementById('last-updated-text').innerHTML = `最終更新: <span>${getFormattedDate(new Date())}</span>`;
       const raritySet = new Set();
       
-      allData = data.map(item => {
+      allData = data.map((item, index) => {
         const nameStr = item.name ? String(item.name) : '';
         const rarityMatch = nameStr.match(/【(.*?)】/);
         const rarity = rarityMatch ? rarityMatch[1] : '';
@@ -224,7 +266,9 @@
 
         return {
           ...item,
+          id: index, // ユニークID用
           nameStr: nameStr,
+          cleanName: nameStr.replace(/【.*?】/, '').trim(),
           normalizedName: normalize(nameStr),
           rarity: rarity,
           image: item.imageURL || item.image || "", 
@@ -236,52 +280,37 @@
       const raritySelect = document.getElementById('rarity-filter');
       Array.from(raritySet).sort().forEach(r => {
         const option = document.createElement('option');
-        option.value = r;
-        option.textContent = r;
+        option.value = r; option.textContent = r;
         raritySelect.appendChild(option);
       });
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('result-area').style.display = 'block';
-      document.getElementById('search-box').disabled = false;
-      document.getElementById('sort-select').disabled = false;
-      document.getElementById('rarity-filter').disabled = false;
+      
+      ['search-box', 'sort-select', 'rarity-filter'].forEach(id => document.getElementById(id).disabled = false);
 
-      // 初期表示
       applyFilterAndSort();
 
       const searchBox = document.getElementById('search-box');
-      searchBox.addEventListener('input', () => {
-        toggleClearBtn();
-        applyFilterAndSort();
-      });
+      searchBox.addEventListener('input', () => { toggleClearBtn(); applyFilterAndSort(); });
     }
 
-    function toggleClearBtn() {
-      const val = document.getElementById('search-box').value;
-      const btn = document.getElementById('clear-btn');
-      btn.style.display = val.length > 0 ? 'block' : 'none';
-    }
-
-    function clearSearch() {
-      const box = document.getElementById('search-box');
-      box.value = '';
-      toggleClearBtn();
-      applyFilterAndSort();
-      box.focus();
-    }
-
+    // 検索・フィルタリング処理
     function applyFilterAndSort() {
       const keyword = document.getElementById('search-box').value;
       const sortType = document.getElementById('sort-select').value;
       const rarityFilter = document.getElementById('rarity-filter').value;
+      const minPrice = parseInt(document.getElementById('min-price').value, 10) || 0;
+      const maxPrice = parseInt(document.getElementById('max-price').value, 10) || Infinity;
       
       const isKeywordEmpty = !keyword.trim();
       const isRarityAll = rarityFilter === 'all';
 
       displayedData = allData.filter(d => {
-        // 通常フィルタ
+        if (isFavOnly && !favorites.includes(d.id)) return false;
         if (!isRarityAll && d.rarity !== rarityFilter) return false;
+        if (d.priceNum < minPrice || d.priceNum > maxPrice) return false;
+        
         if (!isKeywordEmpty) {
           const terms = normalize(keyword).split(/\s+/);
           if (!terms.every(term => d.normalizedName.includes(term))) return false;
@@ -298,66 +327,224 @@
         }
       });
 
-      currentLimit = 100;
       render();
     }
 
+    // 描画処理
     function render() {
       const tbody = document.getElementById('table-body');
+      const gridView = document.getElementById('grid-view');
       const countEl = document.getElementById('hit-count');
-      const loadMoreBtn = document.getElementById('load-more');
 
       if (displayedData.length === 0) {
         countEl.textContent = '0件';
-        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:40px; color:#666;">該当なし</td></tr>`;
-        loadMoreBtn.style.display = 'none';
+        const emptyMsg = `<div style="text-align:center; padding:40px; color:var(--text-sub); grid-column: 1/-1;">該当なし</div>`;
+        tbody.innerHTML = `<tr><td colspan="3">${emptyMsg}</td></tr>`;
+        gridView.innerHTML = emptyMsg;
         return;
       }
 
-      const renderList = displayedData.slice(0, currentLimit);
-      countEl.textContent = `${displayedData.length}件中 ${renderList.length}件を表示`;
+      countEl.textContent = `${displayedData.length}件を表示`;
 
-      if (displayedData.length > currentLimit) {
-        loadMoreBtn.style.display = 'block';
-        loadMoreBtn.textContent = `もっと見る (残り ${displayedData.length - currentLimit}件)`;
-      } else {
-        loadMoreBtn.style.display = 'none';
-      }
+      let listHtml = '';
+      let gridHtml = '';
 
-      const html = renderList.map(item => `
-        <tr>
-          <td class="col-img">
-            ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onclick="openModal('${item.image}')">` : ''}
-          </td>
-          <td class="col-name">
-            <span class="item-name">${item.nameStr.replace(/【.*?】/, '')}</span>
-            ${item.rarity ? `<span class="item-rarity">${item.rarity}</span>` : ''}
-          </td>
-          <td class="col-price">
-            <div class="price-container">
-              <div class="price-tag">
-                <span class="price-label">S</span>¥${item.priceNum.toLocaleString()}
+      displayedData.forEach(item => {
+        const isFav = favorites.includes(item.id);
+        const favIcon = isFav ? '★' : '☆';
+        const favClass = isFav ? 'active' : '';
+        const priceSubHtml = item.priceANum > 0 ? `<div class="price-sub"><span class="price-label">A</span>¥${item.priceANum.toLocaleString()}</div>` : '';
+        const safeName = item.cleanName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const searchUrl = `https://jp.mercari.com/search?keyword=${encodeURIComponent(item.cleanName)}`;
+
+        // リスト用HTML
+        listHtml += `
+          <tr>
+            <td class="col-img">
+              ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onclick="openModal('${item.image}')">` : ''}
+            </td>
+            <td class="col-name">
+              <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div>
+                  ${item.rarity ? `<span class="item-rarity">${item.rarity}</span>` : ''}
+                  <span class="item-name">${item.cleanName}</span>
+                </div>
+                <button class="fav-btn ${favClass}" onclick="toggleFav(${item.id})">${favIcon}</button>
               </div>
-              ${item.priceANum > 0 ? `
-              <div class="price-sub">
-                <span class="price-sub-label">A</span>¥${item.priceANum.toLocaleString()}
-              </div>` : ''}
+              <div class="actions-row" style="justify-content:flex-start; margin-top:8px;">
+                <a href="${searchUrl}" target="_blank" class="action-btn btn-mer" style="max-width:60px;">メルカリ</a>
+                <button onclick="shareTwitter('${safeName}', '${item.priceNum}')" class="action-btn btn-tw" style="max-width:60px;">X共有</button>
+              </div>
+            </td>
+            <td class="col-price" style="width:30%;">
+              <div class="price-container">
+                <div class="price-tag"><span class="price-label">S</span>¥${item.priceNum.toLocaleString()}</div>
+                ${priceSubHtml}
+              </div>
+            </td>
+          </tr>
+        `;
+
+        // グリッド用HTML
+        gridHtml += `
+          <div class="grid-card">
+            <div style="position:absolute; top:5px; right:5px; z-index:10; background:rgba(0,0,0,0.5); border-radius:50%; padding:2px;">
+              <button class="fav-btn ${favClass}" onclick="toggleFav(${item.id})">${favIcon}</button>
             </div>
-          </td>
-        </tr>
-      `).join('');
+            ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onclick="openModal('${item.image}')">` : '<div class="card-thumb"></div>'}
+            <div>
+              ${item.rarity ? `<span class="item-rarity">${item.rarity}</span>` : ''}
+              <span class="item-name">${item.cleanName}</span>
+            </div>
+            <div class="price-container">
+              <div class="price-tag"><span class="price-label">S</span>¥${item.priceNum.toLocaleString()}</div>
+              ${priceSubHtml}
+            </div>
+            <div class="actions-row">
+              <a href="${searchUrl}" target="_blank" class="action-btn btn-mer">メルカリ</a>
+              <button onclick="shareTwitter('${safeName}', '${item.priceNum}')" class="action-btn btn-tw">X共有</button>
+            </div>
+          </div>
+        `;
+      });
 
-      tbody.innerHTML = html;
+      tbody.innerHTML = listHtml;
+      gridView.innerHTML = gridHtml;
     }
 
-    function loadMore() { currentLimit += 100; render(); }
+    // お気に入り処理
+    function toggleFav(id) {
+      if (favorites.includes(id)) {
+        favorites = favorites.filter(f => f !== id);
+        showToast('お気に入りから削除しました');
+      } else {
+        favorites.push(id);
+        showToast('お気に入りに追加しました');
+      }
+      localStorage.setItem('rairai_favs', JSON.stringify(favorites));
+      applyFilterAndSort(); // 再描画
+    }
+
+    function toggleFavFilter() {
+      isFavOnly = !isFavOnly;
+      const btn = document.getElementById('fav-toggle');
+      if(isFavOnly) {
+        btn.classList.add('active');
+        btn.textContent = '★お気に入り表示中';
+      } else {
+        btn.classList.remove('active');
+        btn.textContent = '★お気に入り';
+      }
+      applyFilterAndSort();
+    }
+
+    // 表示切替処理
+    function toggleView() {
+      isGrid = !isGrid;
+      localStorage.setItem('rairai_view', isGrid ? 'grid' : 'list');
+      applyViewState();
+    }
+
+    function applyViewState() {
+      const listView = document.getElementById('list-view');
+      const gridView = document.getElementById('grid-view');
+      const btn = document.getElementById('view-toggle');
+      if (isGrid) {
+        listView.classList.add('hidden');
+        gridView.classList.add('active');
+        btn.innerText = 'リスト表示にする';
+      } else {
+        listView.classList.remove('hidden');
+        gridView.classList.remove('active');
+        btn.innerText = '画像表示にする';
+      }
+    }
+
+    // 検索・履歴処理
+    function handleSearchSubmit(e) {
+      e.preventDefault();
+      const kw = document.getElementById('search-box').value.trim();
+      if (kw) saveHistory(kw);
+      applyFilterAndSort();
+      document.getElementById('search-box').blur();
+    }
+
+    function saveHistory(kw) {
+      searchHistory = searchHistory.filter(h => h !== kw); 
+      searchHistory.unshift(kw); 
+      if (searchHistory.length > 5) searchHistory.pop(); 
+      localStorage.setItem('rairai_history', JSON.stringify(searchHistory));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const cont = document.getElementById('history-container');
+      if (searchHistory.length === 0) { cont.innerHTML = ''; return; }
+      const tagsHtml = searchHistory.map(h => `<span class="history-tag" onclick="searchFromHistory('${h}')">${h}</span>`).join('');
+      cont.innerHTML = `${tagsHtml}<span class="history-clear" onclick="clearHistory()">履歴消去</span>`;
+    }
+
+    function searchFromHistory(kw) {
+      document.getElementById('search-box').value = kw;
+      toggleClearBtn();
+      saveHistory(kw); 
+      applyFilterAndSort();
+    }
+
+    function clearHistory() {
+      searchHistory = [];
+      localStorage.removeItem('rairai_history');
+      renderHistory();
+    }
+
+    function clearKeyword() {
+      document.getElementById('search-box').value = '';
+      document.getElementById('min-price').value = '';
+      document.getElementById('max-price').value = '';
+      document.getElementById('rarity-filter').value = 'all';
+      document.getElementById('sort-select').value = 'name-asc';
+      isFavOnly = false;
+      document.getElementById('fav-toggle').classList.remove('active');
+      document.getElementById('fav-toggle').textContent = '★お気に入り';
+      
+      toggleClearBtn();
+      applyFilterAndSort();
+    }
+
+    function toggleClearBtn() {
+      const val = document.getElementById('search-box').value;
+      document.getElementById('clear-btn').style.display = val.length > 0 ? 'block' : 'none';
+    }
+
+    // ユーティリティ
+    function shareTwitter(name, price) {
+      const cleanName = name.replace(/&quot;/g, '"');
+      const txt = `${cleanName}\n買取価格: ¥${parseInt(price).toLocaleString()}\n#雷雷買取`;
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`, '_blank');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 2000);
+    }
+
     function normalize(str) { return str.normalize('NFKC').toLowerCase(); }
-    function openModal(src) {
-      const modal = document.getElementById('modal');
-      document.getElementById('modal-img').src = src;
-      modal.classList.add('active');
-    }
+    function openModal(src) { document.getElementById('modal-img').src = src; document.getElementById('modal').classList.add('active'); }
     function closeModal() { document.getElementById('modal').classList.remove('active'); }
+    
+    function getFormattedDate(date) {
+      const y = date.getFullYear(), m = String(date.getMonth()+1).padStart(2,'0'), d = String(date.getDate()).padStart(2,'0');
+      const h = String(date.getHours()).padStart(2,'0'), min = String(date.getMinutes()).padStart(2,'0');
+      return `${y}/${m}/${d} ${h}:${min}`;
+    }
+
+    // スクロールトップボタン
+    window.onscroll = function() {
+      const btn = document.getElementById('scrollToTop');
+      btn.style.display = (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) ? 'block' : 'none';
+    };
   </script>
 </body>
 </html>
