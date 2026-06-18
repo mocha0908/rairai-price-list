@@ -38,11 +38,9 @@
     }
 
     /* ヘッダー */
-    .header { padding: 15px 0 5px; }
+    .header { padding: 15px 0 15px; }
     .main-title { text-align: center; font-size: 18px; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; color: var(--text-main); }
-    .logo-img { width: 180px; max-width: 60%; height: auto; filter: drop-shadow(0 0 10px var(--accent)); margin-bottom: 5px; }
-    .last-updated { font-size: 11px; color: var(--text-sub); margin-bottom: 15px; }
-    .last-updated span { color: var(--accent); font-weight: bold; }
+    .logo-img { width: 180px; max-width: 60%; height: auto; filter: drop-shadow(0 0 10px var(--accent)); }
     
     .container { max-width: 800px; margin: 0 auto; padding: 0 15px; }
     
@@ -146,7 +144,6 @@
     <div class="logo-container">
       <img src="https://i.imgur.com/Ad78aeF.png" alt="雷雷ロゴ" class="logo-img">
     </div>
-    <div class="last-updated" id="last-updated-text"></div>
   </div>
 
   <div class="container">
@@ -215,12 +212,10 @@
     </div>
 
     <div id="result-area" style="display:none;">
-      <!-- リスト表示用 -->
       <table class="result-table" id="list-view">
         <tbody id="table-body"></tbody>
       </table>
       
-      <!-- グリッド表示用 -->
       <div class="grid-container" id="grid-view"></div>
     </div>
   </div>
@@ -257,7 +252,6 @@
 
     // 初期化処理
     function initData(data) {
-      document.getElementById('last-updated-text').innerHTML = `最終更新: <span>${getFormattedDate(new Date())}</span>`;
       const raritySet = new Set();
       
       allData = data.map((item, index) => {
@@ -549,12 +543,6 @@
     function normalize(str) { return str.normalize('NFKC').toLowerCase(); }
     function openModal(src) { document.getElementById('modal-img').src = src; document.getElementById('modal').classList.add('active'); }
     function closeModal() { document.getElementById('modal').classList.remove('active'); }
-    
-    function getFormattedDate(date) {
-      const y = date.getFullYear(), m = String(date.getMonth()+1).padStart(2,'0'), d = String(date.getDate()).padStart(2,'0');
-      const h = String(date.getHours()).padStart(2,'0'), min = String(date.getMinutes()).padStart(2,'0');
-      return `${y}/${m}/${d} ${h}:${min}`;
-    }
 
     // スクロールトップボタン
     window.onscroll = function() {
