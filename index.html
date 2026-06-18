@@ -18,7 +18,7 @@
     }
     
     @media (prefers-color-scheme: light) {
-      /* 端末がライトモードの場合は少し明るめに切り替える処理（お好みで調整可能） */
+      /* 端末がライトモードの場合は少し明るめに切り替える処理 */
       :root {
         --bg-color: #f4f7f6;
         --card-bg: #ffffff;
@@ -155,9 +155,6 @@
           <tr><th>カード</th><th>S</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
           <tr><td>AR/CHR</td><td>¥300</td><td>¥120</td><td>¥50</td><td>¥10</td><td>¥1</td></tr>
         </table>
-        <p style="font-size:10px; margin-top:8px; color:var(--text-sub); text-align:center;">
-          ※状態による減額基準は店頭にてご確認ください
-        </p>
       </div>
     </details>
   </div>
@@ -215,10 +212,12 @@
     </div>
 
     <div id="result-area" style="display:none;">
+      <!-- リスト表示用 -->
       <table class="result-table" id="list-view">
         <tbody id="table-body"></tbody>
       </table>
       
+      <!-- グリッド表示用 -->
       <div class="grid-container" id="grid-view"></div>
     </div>
   </div>
@@ -260,9 +259,14 @@
       
       allData = data.map((item, index) => {
         const nameStr = item.name ? String(item.name) : '';
+        
+        // 【】と{}の中身を抽出（メルカリ検索用）
         const rarityMatch = nameStr.match(/【(.*?)】/);
         const rarity = rarityMatch ? rarityMatch[1] : '';
         if (rarity) raritySet.add(rarity);
+
+        const braceMatch = nameStr.match(/\{(.*?)\}/);
+        const braceVal = braceMatch ? braceMatch[1] : '';
 
         return {
           ...item,
@@ -271,6 +275,7 @@
           cleanName: nameStr.replace(/【.*?】/, '').trim(),
           normalizedName: normalize(nameStr),
           rarity: rarity,
+          braceVal: braceVal,
           image: item.imageURL || item.image || "", 
           priceNum: Number(item.priceS) || 0,
           priceANum: Number(item.priceA) || 0
@@ -355,7 +360,15 @@
         const favClass = isFav ? 'active' : '';
         const priceSubHtml = item.priceANum > 0 ? `<div class="price-sub"><span class="price-label">A</span>¥${item.priceANum.toLocaleString()}</div>` : '';
         const safeName = item.cleanName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const searchUrl = `https://jp.mercari.com/search?keyword=${encodeURIComponent(item.cleanName)}`;
+        
+        // ★ メルカリ検索キーワードの生成（【】と{}の中身で検索。なければ元のカード名）
+        let searchTerms = [];
+        if (item.rarity) searchTerms.push(item.rarity);
+        if (item.braceVal) searchTerms.push(item.braceVal);
+        let mercariKeyword = searchTerms.join(' ').trim();
+        if (!mercariKeyword) mercariKeyword = item.cleanName; // 抽出できなかった場合のフォールバック
+        
+        const searchUrl = `https://jp.mercari.com/search?keyword=${encodeURIComponent(mercariKeyword)}`;
 
         // リスト用HTML
         listHtml += `
