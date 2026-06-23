@@ -265,6 +265,14 @@
         const braceMatch = nameStr.match(/\{(.*?)\}/);
         const braceVal = braceMatch ? braceMatch[1] : '';
 
+        // ★ ここでH列のヘッダー名に関わらず外部絶対URLを自動判別・抽出し補完します
+        let rawImgUrl = item.imageURL || item.image || item.画像 || item.画像URL || item.URL || item.url || "";
+        let finalImgUrl = rawImgUrl.trim();
+        
+        if (finalImgUrl && !finalImgUrl.startsWith("http")) {
+          finalImgUrl = "https://raw.githubusercontent.com/mocha0908/rairai-pos-data/main/" + finalImgUrl.replace(/^\.\//, "");
+        }
+
         return {
           ...item,
           id: index, // ユニークID用
@@ -273,7 +281,7 @@
           normalizedName: normalize(nameStr),
           rarity: rarity,
           braceVal: braceVal,
-          image: item.imageURL || item.image || "", 
+          image: finalImgUrl, // 補完完了した画像URLを格納
           priceNum: Number(item.priceS) || 0,
           priceANum: Number(item.priceA) || 0
         };
@@ -358,12 +366,12 @@
         const priceSubHtml = item.priceANum > 0 ? `<div class="price-sub"><span class="price-label">A</span>¥${item.priceANum.toLocaleString()}</div>` : '';
         const safeName = item.cleanName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         
-        // ★ メルカリ検索キーワードの生成（【】と{}の中身で検索。なければ元のカード名）
+        // メルカリ検索キーワードの生成
         let searchTerms = [];
         if (item.rarity) searchTerms.push(item.rarity);
         if (item.braceVal) searchTerms.push(item.braceVal);
         let mercariKeyword = searchTerms.join(' ').trim();
-        if (!mercariKeyword) mercariKeyword = item.cleanName; // 抽出できなかった場合のフォールバック
+        if (!mercariKeyword) mercariKeyword = item.cleanName;
         
         const searchUrl = `https://jp.mercari.com/search?keyword=${encodeURIComponent(mercariKeyword)}`;
 
@@ -371,7 +379,7 @@
         listHtml += `
           <tr>
             <td class="col-img">
-              ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onclick="openModal('${item.image}')">` : ''}
+              ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onerror="this.src='https://placehold.co/44x62?text=No+Image'" onclick="openModal('${item.image}')">` : ''}
             </td>
             <td class="col-name">
               <div style="display:flex; justify-content:space-between; align-items:start;">
@@ -401,7 +409,7 @@
             <div style="position:absolute; top:5px; right:5px; z-index:10; background:rgba(0,0,0,0.5); border-radius:50%; padding:2px;">
               <button class="fav-btn ${favClass}" onclick="toggleFav(${item.id})">${favIcon}</button>
             </div>
-            ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onclick="openModal('${item.image}')">` : '<div class="card-thumb"></div>'}
+            ${item.image ? `<img src="${item.image}" class="card-thumb" loading="lazy" onerror="this.src='https://placehold.co/140x140?text=No+Image'" onclick="openModal('${item.image}')">` : '<div class="card-thumb"></div>'}
             <div>
               ${item.rarity ? `<span class="item-rarity">${item.rarity}</span>` : ''}
               <span class="item-name">${item.cleanName}</span>
@@ -432,7 +440,7 @@
         showToast('お気に入りに追加しました');
       }
       localStorage.setItem('rairai_favs', JSON.stringify(favorites));
-      applyFilterAndSort(); // 再描画
+      applyFilterAndSort();
     }
 
     function toggleFavFilter() {
@@ -527,7 +535,7 @@
     }
 
     // ユーティリティ
-    function shareTwitter(name, price) {
+     function shareTwitter(name, price) {
       const cleanName = name.replace(/&quot;/g, '"');
       const txt = `${cleanName}\n買取価格: ¥${parseInt(price).toLocaleString()}\n#雷雷買取`;
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`, '_blank');
